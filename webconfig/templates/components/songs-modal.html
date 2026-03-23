@@ -1,0 +1,725 @@
+<!-- Songs Modal -->
+<div id="songs-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+    <div class="bg-zinc-900/50 backdrop-blur-xs border border-zinc-700 rounded-lg w-full max-w-2xl mx-4 max-h-[90vh] flex flex-col shadow-2xl">
+        <!-- Fixed Header -->
+        <div class="flex justify-between items-center p-4 border-b border-zinc-700 flex-shrink-0 relative w-full">
+            <div class="flex justify-between items-center relative w-full">
+                <!-- Back button (left) -->
+                <button id="back-to-songs-list-btn" class="text-zinc-400 hover:text-white transition-colors hidden absolute left-0">
+                    <span class="material-icons">arrow_back</span>
+                </button>
+                
+                <!-- Title (center) -->
+                <h3 class="text-lg font-semibold text-white flex items-center gap-2 mx-auto">
+                    <span class="material-icons text-emerald-400">library_music</span>
+                    <span id="songs-modal-title">Song Manager</span>
+                </h3>
+                
+                <!-- Close button (right) -->
+                <button id="close-songs-modal" class="text-zinc-400 hover:text-white transition-colors flex absolute right-0">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Scrollable Content -->
+        <div class="flex-1 overflow-y-auto p-4">
+            <!-- Song List View -->
+            <div id="songs-list-view">
+                <div class="mb-4 flex justify-between items-center">
+                    <p class="text-sm text-zinc-400">Manage custom songs for Billy to perform</p>
+                    <div class="flex gap-2">
+                        <button id="create-song-btn"
+                                class="bg-emerald-600 hover:bg-emerald-500 transition-colors text-white text-sm py-2 px-4 rounded flex gap-2 items-center">
+                            <span class="material-icons text-sm">add</span>
+                            New Song
+                        </button>
+                        <button id="import-fishsinger-btn" type="button"
+                                class="bg-cyan-600 hover:bg-cyan-500 transition-colors text-white text-sm py-2 px-4 rounded flex gap-2 items-center">
+                            <span class="material-icons text-sm">upload_file</span>
+                            Import from FishSinger
+                        </button>
+                        <input type="file" id="fishsinger-file" accept=".🐟,.zip,application/zip" class="hidden">
+                    </div>
+                </div>
+
+                <!-- Songs Grid -->
+                <div id="songs-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Songs will be inserted here by JS -->
+                </div>
+
+                <!-- Empty State -->
+                <div id="songs-empty-state" class="hidden text-center py-12">
+                    <span class="material-icons text-6xl text-zinc-600 mb-4">music_off</span>
+                    <p class="text-zinc-400 mb-4">No custom songs yet</p>
+                    <button class="bg-emerald-600 hover:bg-emerald-500 transition-colors text-white text-sm py-2 px-4 rounded"
+                            onclick="document.getElementById('create-song-btn').click()">
+                        Create Your First Song
+                    </button>
+                </div>
+            </div>
+
+            <!-- Song Edit View -->
+            <div id="song-edit-view" class="hidden">
+                <form id="song-edit-form" class="space-y-6">
+                    <!-- Song Name (for new songs only) -->
+                    <div id="song-name-field">
+                        <label for="song-name" class="block text-sm font-semibold text-slate-300 mb-2">
+                            Song Name (folder name)
+                        </label>
+                        <input type="text" id="song-name" name="name"
+                               class="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded text-white"
+                               placeholder="e.g., my_awesome_song"
+                               pattern="[a-z0-9_]+"
+                               title="Only lowercase letters, numbers, and underscores">
+                        <p class="text-xs text-zinc-500 mt-1">Only lowercase letters, numbers, and underscores</p>
+                    </div>
+
+                    <!-- Title -->
+                    <div>
+                        <label for="song-title" class="block text-sm font-semibold text-slate-300 mb-2">
+                            Display Title
+                        </label>
+                        <input type="text" id="song-title" name="title"
+                               class="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded text-white"
+                               placeholder="e.g., My Awesome Song"
+                               required>
+                    </div>
+
+                    <!-- Keywords -->
+                    <div>
+                        <label for="song-keywords" class="flex justify-between items-center font-semibold text-sm text-slate-300">
+                            Keywords (comma-separated)
+                            <span class="material-icons align-middle hover:text-cyan-400 cursor-pointer"
+                                  onclick="toggleTooltip(this)">help_outline</span>
+                        </label>
+                        <div class="relative">
+                            <div data-tooltip>
+                                Keywords help Billy understand when to play this song.<br>
+                                Include song title, artist name, genre, mood, or themes.<br><br>
+                                <b>Examples:</b><br>
+                                • "happy birthday, celebration, party"<br>
+                                • "rock, guitar, upbeat, energetic"<br>
+                                • "relaxing, calm, peaceful, chill"
+                            </div>
+                            <input type="text" id="song-keywords" name="keywords"
+                                   class="w-full px-3 py-2 mt-1 bg-zinc-800 border border-zinc-700 rounded text-white"
+                                   placeholder="e.g., rock, guitar, upbeat">
+                        </div>
+                    </div>
+
+                    <!-- Audio Files -->
+                    <div class="space-y-4">
+                        <label class="flex justify-between items-center font-semibold text-sm text-slate-300">
+                            <span class="flex items-center gap-2">
+                                <span class="material-icons text-sm">audiotrack</span>
+                                Audio Files
+                            </span>
+                            <span class="material-icons align-middle hover:text-cyan-400 cursor-pointer"
+                                  onclick="toggleTooltip(this)">help_outline</span>
+                        </label>
+                        <div class="relative">
+                            <div data-tooltip>
+                                <b>How to prepare audio files:</b><br><br>
+                                <b>1. Full Mix (full.wav):</b> The complete song as Billy will play it<br>
+                                <b>2. Vocals (vocals.wav):</b> Isolated vocals for mouth sync<br>
+                                <b>3. Drums (drums.wav):</b> Isolated drums/percussion for tail movements<br><br>
+                                <b>Splitting audio:</b> Use <a href="https://vocalremover.org/" target="_blank" class="underline hover:text-cyan-400">Vocal Remover and Isolation</a>, Spleeter, Demucs, or LALAL.AI to separate stems.<br><br>
+                                <b>Technical requirements:</b><br>
+                                • Format: WAV (uncompressed)<br>
+                                • Sample rate: 48 kHz<br>
+                                • Bit depth: 16-bit<br>
+                                • All three files must have the same length
+                            </div>
+                        </div>
+
+                        <!-- Full Audio -->
+                        <div class="bg-zinc-800/50 p-4 rounded border border-zinc-700">
+                            <div class="flex items-center justify-between">
+                                <label class="text-sm font-medium text-zinc-300">
+                                    Full Mix (full.wav)
+                                    <span id="full-status" class="ml-2"></span>
+                                </label>
+                                <div class="flex items-center gap-2">
+                                    <label for="full-file" class="text-zinc-400 hover:text-emerald-400 transition-colors cursor-pointer" title="Upload file">
+                                        <span class="material-icons">upload</span>
+                                    </label>
+                                    <button type="button" id="play-full" class="text-zinc-400 hover:text-emerald-400 transition-colors hidden" title="Play/Pause">
+                                        <span class="material-icons">play_circle</span>
+                                    </button>
+                                    <input type="file" id="full-file" accept=".wav" class="hidden">
+                                </div>
+                            </div>
+                            <audio id="full-audio" class="hidden"></audio>
+                        </div>
+
+                        <!-- Vocals -->
+                        <div class="bg-zinc-800/50 p-4 rounded border border-zinc-700">
+                            <div class="flex items-center justify-between">
+                                <label class="text-sm font-medium text-zinc-300">
+                                    Vocals (vocals.wav) - for mouth movements
+                                    <span id="vocals-status" class="ml-2"></span>
+                                </label>
+                                <div class="flex items-center gap-2">
+                                    <label for="vocals-file" class="text-zinc-400 hover:text-emerald-400 transition-colors cursor-pointer" title="Upload file">
+                                        <span class="material-icons">upload</span>
+                                    </label>
+                                    <button type="button" id="play-vocals" class="text-zinc-400 hover:text-emerald-400 transition-colors hidden" title="Play/Pause">
+                                        <span class="material-icons">play_circle</span>
+                                    </button>
+                                    <input type="file" id="vocals-file" accept=".wav" class="hidden">
+                                </div>
+                            </div>
+                            <audio id="vocals-audio" class="hidden"></audio>
+                        </div>
+
+                        <!-- Drums -->
+                        <div class="bg-zinc-800/50 p-4 rounded border border-zinc-700">
+                            <div class="flex items-center justify-between">
+                                <label class="text-sm font-medium text-zinc-300">
+                                    Drums (drums.wav) - for tail movements
+                                    <span id="drums-status" class="ml-2"></span>
+                                </label>
+                                <div class="flex items-center gap-2">
+                                    <label for="drums-file" class="text-zinc-400 hover:text-emerald-400 transition-colors cursor-pointer" title="Upload file">
+                                        <span class="material-icons">upload</span>
+                                    </label>
+                                    <button type="button" id="play-drums" class="text-zinc-400 hover:text-emerald-400 transition-colors hidden" title="Play/Pause">
+                                        <span class="material-icons">play_circle</span>
+                                    </button>
+                                    <input type="file" id="drums-file" accept=".wav" class="hidden">
+                                </div>
+                            </div>
+                            <audio id="drums-audio" class="hidden"></audio>
+                        </div>
+                    </div>
+
+                    <!-- Song Settings -->
+                    <div class="space-y-4">
+                        <h4 class="text-sm font-semibold text-slate-300 flex items-center gap-2">
+                            <span class="material-icons text-sm">tune</span>
+                            Animation Settings
+                        </h4>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- BPM -->
+                            <div>
+                                <label for="song-bpm" class="block text-sm font-medium text-zinc-300 mb-2">
+                                    BPM (Beats Per Minute)
+                                </label>
+                                <input type="number" id="song-bpm" name="bpm"
+                                       class="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded text-white"
+                                       value="120" min="40" max="200" step="0.1">
+                            </div>
+
+                            <!-- Gain -->
+                            <div>
+                                <label for="song-gain" class="flex justify-between items-center font-semibold text-sm text-slate-300">
+                                    Gain (Volume Multiplier)
+                                    <span class="material-icons align-middle hover:text-cyan-400 cursor-pointer"
+                                          onclick="toggleTooltip(this)">help_outline</span>
+                                </label>
+                                <div class="relative">
+                                    <div data-tooltip>
+                                        Adjusts the song volume relative to Billy's speech.<br>
+                                        <b>1.0:</b> Original volume (default)<br>
+                                        <b>&lt; 1.0:</b> Quieter than original<br>
+                                        <b>&gt; 1.0:</b> Louder than original<br><br>
+                                        Increase this if your song is quieter than Billy's voice.
+                                    </div>
+                                    <input type="number" id="song-gain" name="gain"
+                                           class="w-full px-3 py-2 mt-1 bg-zinc-800 border border-zinc-700 rounded text-white"
+                                           value="1.0" min="0.1" max="5.0" step="0.1">
+                                </div>
+                            </div>
+
+                            <!-- Tail Threshold -->
+                            <div>
+                                <label for="song-tail-threshold" class="flex justify-between items-center font-semibold text-sm text-slate-300">
+                                    Tail Threshold
+                                    <span class="material-icons align-middle hover:text-cyan-400 cursor-pointer"
+                                          onclick="toggleTooltip(this)">help_outline</span>
+                                </label>
+                                <div class="relative">
+                                    <div data-tooltip>
+                                        Minimum drum amplitude required to trigger tail movement.<br>
+                                        <b>Lower values:</b> More sensitive, tail moves more often<br>
+                                        <b>Higher values:</b> Less sensitive, only strong beats move tail
+                                    </div>
+                                    <input type="number" id="song-tail-threshold" name="tail_threshold"
+                                           class="w-full px-3 py-2 mt-1 bg-zinc-800 border border-zinc-700 rounded text-white"
+                                           value="1500" min="0" max="10000" step="100">
+                                </div>
+                            </div>
+
+                            <!-- Compensate Tail -->
+                            <div>
+                                <label for="song-compensate-tail" class="flex justify-between items-center font-semibold text-sm text-slate-300">
+                                    Compensate Tail (0-1)
+                                    <span class="material-icons align-middle hover:text-cyan-400 cursor-pointer"
+                                          onclick="toggleTooltip(this)">help_outline</span>
+                                </label>
+                                <div class="relative">
+                                    <div data-tooltip>
+                                        Delays tail movement by a fraction of the beat length to compensate for timing differences.<br>
+                                        <b>0:</b> No compensation, immediate response<br>
+                                        <b>0.25:</b> Quarter beat delay<br>
+                                        <b>0.5:</b> Half beat delay<br>
+                                        <b>1:</b> Full beat delay
+                                    </div>
+                                    <input type="number" id="song-compensate-tail" name="compensate_tail"
+                                           class="w-full px-3 py-2 mt-1 bg-zinc-800 border border-zinc-700 rounded text-white"
+                                           value="0" min="0" max="1" step="0.05">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Head Moves -->
+                        <div>
+                            <label for="song-head-moves" class="flex justify-between items-center font-semibold text-sm text-slate-300 mb-2">
+                                Head Moves (time:duration pairs)
+                                <span class="material-icons align-middle hover:text-cyan-400 cursor-pointer ml-1"
+                                      onclick="toggleTooltip(this)">help_outline</span>
+                            </label>
+                            <div class="relative">
+                                <div data-tooltip class="w-64">
+                                    Format: time_in_seconds:duration, comma-separated<br>
+                                    Example: 2:2.0, 29.5:2.0, 33:2.0
+                                </div>
+                                <input type="text" id="song-head-moves" name="head_moves"
+                                       class="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded text-white"
+                                       placeholder="e.g., 2:2.0, 29.5:2.0, 33:2.0">
+                            </div>
+                        </div>
+
+                        <!-- Half Tempo Tail Flap -->
+                        <div>
+                            <label for="song-half-tempo" class="flex justify-between items-center font-semibold text-sm text-slate-300">
+                                Half Tempo Tail Flap
+                                <span class="material-icons align-middle hover:text-cyan-400 cursor-pointer"
+                                      onclick="toggleTooltip(this)">help_outline</span>
+                            </label>
+                            <div class="relative">
+                                <div data-tooltip>
+                                    Makes the tail flap at half the tempo of the beat.<br>
+                                    Useful for slower, more deliberate tail movements in fast songs.
+                                </div>
+                                <div class="flex items-center gap-2 mt-1">
+                                    <input type="checkbox" id="song-half-tempo" name="half_tempo_tail_flap"
+                                           class="w-4 h-4 bg-zinc-800 border-zinc-700 rounded text-emerald-600 focus:ring-emerald-500">
+                                    <span class="text-sm text-zinc-400">Enable half-tempo tail movement</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Fixed Footer -->
+        <div id="song-edit-footer" class="hidden border-t border-zinc-700 p-4 flex-shrink-0 flex justify-between items-center">
+            <button id="delete-song-btn" type="button"
+                    class="bg-rose-600 hover:bg-rose-500 transition-colors text-white text-sm py-2 px-4 rounded flex gap-2 items-center">
+                <span class="material-icons text-sm">delete</span>
+                Delete Song
+            </button>
+            <button id="save-song-btn" type="button"
+                    class="bg-emerald-600 hover:bg-emerald-500 transition-colors text-white text-sm py-2 px-4 rounded flex gap-2 items-center">
+                <span class="material-icons text-sm">save</span>
+                <span id="save-song-btn-text">Save Song</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script>
+(() => {
+    const fishImportState = {
+        importedFiles: {},
+        importedAudioUrls: {},
+    };
+
+    function $(id) {
+        return document.getElementById(id);
+    }
+
+    function showStatus(el, message, ok = true) {
+        if (!el) return;
+        el.textContent = message;
+        el.className = ok ? 'ml-2 text-emerald-400 text-xs' : 'ml-2 text-rose-400 text-xs';
+    }
+
+    function slugifyFolderName(value) {
+        return String(value || 'fishsinger_import')
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '_')
+            .replace(/^_+|_+$/g, '') || 'fishsinger_import';
+    }
+
+    function pairIntervals(events, onCat, offCat, audioDuration) {
+        const sorted = [...events].sort((a, b) => (a.time || 0) - (b.time || 0));
+        const intervals = [];
+        let start = null;
+        for (const event of sorted) {
+            if (event.cat === onCat) {
+                start = Number(event.time) || 0;
+            } else if (event.cat === offCat && start !== null) {
+                const end = Number(event.time) || 0;
+                if (end > start) {
+                    intervals.push([start, end]);
+                }
+                start = null;
+            }
+        }
+        if (start !== null && audioDuration > start) {
+            intervals.push([start, audioDuration]);
+        }
+        return intervals;
+    }
+
+    function headMovesFromEvents(events, audioDuration) {
+        return pairIntervals(events, 'head1', 'head0', audioDuration)
+            .map(([start, end]) => `${start.toFixed(3).replace(/\.000$/, '')}:${(end - start).toFixed(3).replace(/\.000$/, '')}`)
+            .join(', ');
+    }
+
+    function createGatedBuffer(sourceBuffer, intervals) {
+        const ctx = new OfflineAudioContext(
+            sourceBuffer.numberOfChannels,
+            sourceBuffer.length,
+            sourceBuffer.sampleRate
+        );
+        const output = ctx.createBuffer(
+            sourceBuffer.numberOfChannels,
+            sourceBuffer.length,
+            sourceBuffer.sampleRate
+        );
+
+        for (let ch = 0; ch < sourceBuffer.numberOfChannels; ch++) {
+            output.getChannelData(ch).set(sourceBuffer.getChannelData(ch));
+        }
+
+        const sampleRate = sourceBuffer.sampleRate;
+        for (let ch = 0; ch < output.numberOfChannels; ch++) {
+            const channel = output.getChannelData(ch);
+            channel.fill(0);
+            const src = sourceBuffer.getChannelData(ch);
+            for (const [start, end] of intervals) {
+                const s = Math.max(0, Math.floor(start * sampleRate));
+                const e = Math.min(channel.length, Math.ceil(end * sampleRate));
+                if (e > s) {
+                    channel.set(src.subarray(s, e), s);
+                }
+            }
+        }
+        return output;
+    }
+
+    async function decodeAudioFile(file) {
+        const arrayBuffer = await file.arrayBuffer();
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        try {
+            return await audioCtx.decodeAudioData(arrayBuffer.slice(0));
+        } finally {
+            await audioCtx.close();
+        }
+    }
+
+    async function resampleAudioBuffer(audioBuffer, targetSampleRate = 48000) {
+        if (audioBuffer.sampleRate === targetSampleRate) {
+            return audioBuffer;
+        }
+        const duration = audioBuffer.duration;
+        const frameCount = Math.ceil(duration * targetSampleRate);
+        const offline = new OfflineAudioContext(audioBuffer.numberOfChannels, frameCount, targetSampleRate);
+        const source = offline.createBufferSource();
+        source.buffer = audioBuffer;
+        source.connect(offline.destination);
+        source.start();
+        return await offline.startRendering();
+    }
+
+    function audioBufferTo16BitWavBlob(audioBuffer) {
+        const numChannels = audioBuffer.numberOfChannels;
+        const sampleRate = audioBuffer.sampleRate;
+        const samples = audioBuffer.length;
+        const bytesPerSample = 2;
+        const blockAlign = numChannels * bytesPerSample;
+        const buffer = new ArrayBuffer(44 + samples * blockAlign);
+        const view = new DataView(buffer);
+
+        function writeString(offset, str) {
+            for (let i = 0; i < str.length; i++) {
+                view.setUint8(offset + i, str.charCodeAt(i));
+            }
+        }
+
+        writeString(0, 'RIFF');
+        view.setUint32(4, 36 + samples * blockAlign, true);
+        writeString(8, 'WAVE');
+        writeString(12, 'fmt ');
+        view.setUint32(16, 16, true);
+        view.setUint16(20, 1, true);
+        view.setUint16(22, numChannels, true);
+        view.setUint32(24, sampleRate, true);
+        view.setUint32(28, sampleRate * blockAlign, true);
+        view.setUint16(32, blockAlign, true);
+        view.setUint16(34, 16, true);
+        writeString(36, 'data');
+        view.setUint32(40, samples * blockAlign, true);
+
+        const channels = [];
+        for (let ch = 0; ch < numChannels; ch++) {
+            channels.push(audioBuffer.getChannelData(ch));
+        }
+
+        let offset = 44;
+        for (let i = 0; i < samples; i++) {
+            for (let ch = 0; ch < numChannels; ch++) {
+                let sample = channels[ch][i];
+                sample = Math.max(-1, Math.min(1, sample));
+                const intSample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
+                view.setInt16(offset, intSample, true);
+                offset += 2;
+            }
+        }
+
+        return new Blob([buffer], { type: 'audio/wav' });
+    }
+
+    function assignFileToInput(input, file) {
+        if (!input || !file) return;
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        input.files = dt.files;
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    function setAudioPreview(audioEl, file, playBtn) {
+        if (!audioEl || !file) return;
+        const priorUrl = fishImportState.importedAudioUrls[audioEl.id];
+        if (priorUrl) {
+            URL.revokeObjectURL(priorUrl);
+        }
+        const url = URL.createObjectURL(file);
+        fishImportState.importedAudioUrls[audioEl.id] = url;
+        audioEl.src = url;
+        audioEl.classList.remove('hidden');
+        if (playBtn) {
+            playBtn.classList.remove('hidden');
+            playBtn.onclick = () => {
+                if (audioEl.paused) {
+                    audioEl.play();
+                    const icon = playBtn.querySelector('.material-icons');
+                    if (icon) icon.textContent = 'pause_circle';
+                } else {
+                    audioEl.pause();
+                    const icon = playBtn.querySelector('.material-icons');
+                    if (icon) icon.textContent = 'play_circle';
+                }
+            };
+            audioEl.onended = () => {
+                const icon = playBtn.querySelector('.material-icons');
+                if (icon) icon.textContent = 'play_circle';
+            };
+        }
+    }
+
+    async function convertMp3To48k16BitMainTrack(songMp3File) {
+        const decoded = await decodeAudioFile(songMp3File);
+        const resampled = await resampleAudioBuffer(decoded, 48000);
+        const fullWav = new File([
+            audioBufferTo16BitWavBlob(resampled)
+        ], 'full.wav', { type: 'audio/wav' });
+
+        return { fullWav, duration: resampled.duration };
+    }
+
+    function createActivityNoiseBuffer(durationSeconds, intervals, sampleRate = 48000) {
+        const frameCount = Math.max(1, Math.ceil(durationSeconds * sampleRate));
+        const buffer = new AudioBuffer({
+            numberOfChannels: 1,
+            length: frameCount,
+            sampleRate,
+        });
+        const channel = buffer.getChannelData(0);
+
+        for (const [start, end] of intervals) {
+            const startFrame = Math.max(0, Math.floor(start * sampleRate));
+            const endFrame = Math.min(frameCount, Math.ceil(end * sampleRate));
+            for (let i = startFrame; i < endFrame; i++) {
+                channel[i] = (Math.random() * 2 - 1) * 0.7;
+            }
+        }
+
+        const fadeSamples = Math.max(1, Math.round(sampleRate * 0.003));
+        for (const [start, end] of intervals) {
+            const startFrame = Math.max(0, Math.floor(start * sampleRate));
+            const endFrame = Math.min(frameCount, Math.ceil(end * sampleRate));
+            const fadeInEnd = Math.min(endFrame, startFrame + fadeSamples);
+            const fadeOutStart = Math.max(startFrame, endFrame - fadeSamples);
+
+            for (let i = startFrame; i < fadeInEnd; i++) {
+                const gain = (i - startFrame) / Math.max(1, fadeInEnd - startFrame);
+                channel[i] *= gain;
+            }
+            for (let i = fadeOutStart; i < endFrame; i++) {
+                const gain = (endFrame - i) / Math.max(1, endFrame - fadeOutStart);
+                channel[i] *= gain;
+            }
+        }
+
+        return buffer;
+    }
+
+    function createMovementWavFile(fileName, durationSeconds, intervals) {
+        const noiseBuffer = createActivityNoiseBuffer(durationSeconds, intervals, 48000);
+        return new File([
+            audioBufferTo16BitWavBlob(noiseBuffer)
+        ], fileName, { type: 'audio/wav' });
+    }
+
+    function openSongEditor() {
+        const listView = $('songs-list-view');
+        const editView = $('song-edit-view');
+        const footer = $('song-edit-footer');
+        const backBtn = $('back-to-songs-list-btn');
+        const title = $('songs-modal-title');
+        if (listView) listView.classList.add('hidden');
+        if (editView) editView.classList.remove('hidden');
+        if (footer) footer.classList.remove('hidden');
+        if (backBtn) backBtn.classList.remove('hidden');
+        if (title) title.textContent = 'Edit Song';
+    }
+
+    async function tryAutoSaveImportedSong() {
+        const saveBtn = $('save-song-btn');
+        if (!saveBtn) return false;
+
+        const beforeCards = document.querySelectorAll('#custom-songs-list > *').length;
+        saveBtn.click();
+
+        await new Promise(resolve => setTimeout(resolve, 600));
+        const afterCards = document.querySelectorAll('#custom-songs-list > *').length;
+        return afterCards > beforeCards;
+    }
+
+    async function importFishSingerFile(file) {
+        if (!window.JSZip) {
+            throw new Error('JSZip failed to load.');
+        }
+
+        const zip = await JSZip.loadAsync(file);
+        const animationEntry = zip.file(/(^|\/)animation\.json$/i)?.[0];
+        const songEntry = zip.file(/(^|\/)(audio|song)\.mp3$/i)?.[0];
+
+        if (!animationEntry || !songEntry) {
+            throw new Error('The selected FishSinger file must contain animation.json and audio.mp3.');
+        }
+
+        const animationText = await animationEntry.async('string');
+        const animationJson = JSON.parse(animationText);
+        if (!Array.isArray(animationJson) || animationJson.length < 2) {
+            throw new Error('animation.json did not contain the expected event list.');
+        }
+
+        openSongEditor();
+
+        const meta = animationJson[0] || {};
+        const animationEvents = animationJson.slice(1);
+        const songMp3Blob = await songEntry.async('blob');
+        const songMp3File = new File([songMp3Blob], songEntry.name.split('/').pop() || 'audio.mp3', { type: 'audio/mpeg' });
+        const { fullWav, duration } = await convertMp3To48k16BitMainTrack(songMp3File);
+
+        const mouthIntervals = pairIntervals(animationEvents, 'mouth1', 'mouth0', duration);
+        const tailIntervals = pairIntervals(animationEvents, 'tail1', 'tail0', duration);
+        const vocalsWav = createMovementWavFile('vocals.wav', duration, mouthIntervals);
+        const drumsWav = createMovementWavFile('drums.wav', duration, tailIntervals);
+
+        const title = meta.name || file.name.replace(/\.[^.]+$/, '');
+        const folderName = slugifyFolderName(title);
+        const keywords = [title, meta.notes].filter(Boolean).join(', ');
+        const headMoves = headMovesFromEvents(animationEvents, duration);
+
+        if ($('song-name')) $('song-name').value = folderName;
+        if ($('song-title')) $('song-title').value = title;
+        if ($('song-keywords')) $('song-keywords').value = keywords;
+        if ($('song-head-moves')) $('song-head-moves').value = headMoves;
+
+        assignFileToInput($('full-file'), fullWav);
+        setAudioPreview($('full-audio'), fullWav, $('play-full'));
+        showStatus($('full-status'), 'Imported');
+
+        assignFileToInput($('vocals-file'), vocalsWav);
+        setAudioPreview($('vocals-audio'), vocalsWav, $('play-vocals'));
+        showStatus($('vocals-status'), `Generated from mouth (${mouthIntervals.length} clips)`);
+
+        assignFileToInput($('drums-file'), drumsWav);
+        setAudioPreview($('drums-audio'), drumsWav, $('play-drums'));
+        showStatus($('drums-status'), `Generated from tail (${tailIntervals.length} clips)`);
+
+        fishImportState.importedFiles = {
+            full: fullWav,
+            vocals: vocalsWav,
+            drums: drumsWav,
+            animationJson,
+        };
+
+        document.dispatchEvent(new CustomEvent('fishsinger-imported', {
+            detail: {
+                meta,
+                animationEvents,
+                files: fishImportState.importedFiles,
+                headMoves,
+            }
+        }));
+
+        const autoSaved = await tryAutoSaveImportedSong();
+        if (!autoSaved) {
+            alert('FishSinger import is loaded into the song editor. Tap Save Song to add it to Custom Songs.');
+        }
+    }
+
+    function wireFishSingerImporter() {
+        const importBtn = $('import-fishsinger-btn');
+        const fileInput = $('fishsinger-file');
+        if (!importBtn || !fileInput || importBtn.dataset.wired === 'true') return;
+
+        importBtn.dataset.wired = 'true';
+        importBtn.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', async (event) => {
+            const file = event.target.files?.[0];
+            if (!file) return;
+
+            const originalLabel = importBtn.innerHTML;
+            importBtn.disabled = true;
+            importBtn.innerHTML = '<span class="material-icons text-sm">hourglass_top</span> Importing...';
+
+            try {
+                await importFishSingerFile(file);
+                importBtn.innerHTML = '<span class="material-icons text-sm">check_circle</span> Imported';
+                setTimeout(() => {
+                    importBtn.innerHTML = originalLabel;
+                    importBtn.disabled = false;
+                }, 1500);
+            } catch (error) {
+                console.error(error);
+                alert(`FishSinger import failed: ${error.message}`);
+                importBtn.innerHTML = originalLabel;
+                importBtn.disabled = false;
+            } finally {
+                fileInput.value = '';
+            }
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', wireFishSingerImporter);
+    } else {
+        wireFishSingerImporter();
+    }
+})();
+</script>
